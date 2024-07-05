@@ -1,6 +1,15 @@
-import { Observable } from "rxjs";
+import { from, mergeMap, Observable, reduce } from 'rxjs';
 
 export function filterClosePoints(input: Observable<{ x: number, y: number }>): Observable<{ x: number, y: number }> {
-  // TODO: 여기에 코드를 작성하세요.
-  return new Observable(); // 타입 에러를 막기 위해서 만들어진 코드입니다.
+  type Point = { x: number, y: number };
+
+  return input.pipe(
+    reduce<Point, Point[]>((acc, point) => {
+      if (acc.length === 0) return [point];
+      const lastPoint = acc[acc.length - 1];
+      const distance = Math.sqrt((point.x - lastPoint.x) ** 2 + (point.y - lastPoint.y) ** 2);
+      return distance >= 1 ? [...acc, point] : acc;
+    }, []),
+    mergeMap((points) => from(points)),
+  );
 }

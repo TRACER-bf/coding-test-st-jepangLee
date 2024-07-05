@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, reduce } from 'rxjs';
 
 interface Data {
   value: number;
@@ -11,6 +11,16 @@ interface Stats {
 }
 
 export function processDataAndComputeStats(input: Observable<Data>): Observable<Stats> {
-  // TODO: 여기에 코드를 작성하세요.
-  return new Observable(); // 타입 에러를 막기 위해서 만들어진 코드입니다.
+  const isDataValid = (data: Data): boolean => data.category === 'A' || data.category === 'B';
+
+  return input.pipe(
+    reduce<Data, Stats>((acc, data) => {
+      const stats = { ...acc };
+      if (isDataValid(data)) {
+        stats.totalSum += data.value;
+        stats.categoryCounts[data.category] = (stats.categoryCounts[data.category] || 0) + 1;
+      }
+      return stats;
+    }, { totalSum: 0, categoryCounts: {} }),
+  );
 }
